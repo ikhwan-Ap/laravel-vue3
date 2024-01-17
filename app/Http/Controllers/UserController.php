@@ -12,8 +12,41 @@ use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class ProfileController extends Controller
+class UserController extends Controller
 {
+    protected $breadcrumbs = [];
+
+    public function __construct()
+    {
+      $this->breadcrumbs = [
+        ['title' => 'Dashboard', 'uri' => route('dashboard')]
+      ];
+    }
+    
+    public function index()
+    {
+      $this->breadcrumbs[] = ['title' => 'Master Data User', 'uri' => route('user.index')];
+    
+      return Inertia::render('User/index', [
+          'title'  => 'Master Data User',
+          'breadcrumbs ' => $this->breadcrumbs 
+      ]);
+
+    }
+
+    public function create(): Response
+    {
+        return Inertia::render('Profile/Edit', []);
+    }
+
+    public function store(Request $request): Response
+    {
+        return Inertia::render('Profile/Edit', [
+            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'status' => session('status'),
+        ]);
+    }
+
     /**
      * Display the user's profile form.
      */
@@ -64,7 +97,19 @@ class ProfileController extends Controller
 
     public function table(Request $request)
     {
-        return response(User::orderBy('created_at', 'DESC')->filter($request->all())->get());
         return response()->json(User::orderBy('created_at', 'DESC')->filter($request->all())->paginateFilter());
+    }
+
+    public function validationRules($banner = null)
+    {
+        return [
+            'page_name' => 'required',
+            'title' => 'required',
+            'banner_image' => 'required',
+            'description' => 'nullable',
+            'sub_description' => 'nullable',
+            'button_title' => 'nullable',
+            'link_redirect' => 'nullable',
+        ];
     }
 }
